@@ -1,0 +1,7 @@
+version: "3.5"
+services:
+  hostmanager:
+    image: iamluc/docker-hostmanager
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/hosts:/hosts

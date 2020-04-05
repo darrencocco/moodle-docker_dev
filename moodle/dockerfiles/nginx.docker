@@ -1,0 +1,25 @@
+FROM nginx:perl
+
+ARG CONTAINER_USER_ID
+ARG CONTAINER_GROUP_ID
+ENV CONTAINER_USER_ID $CONTAINER_USER_ID
+ENV CONTAINER_GROUP_ID $CONTAINER_GROUP_ID
+
+# Need to recreate user with supplied uid with 'no-log-init' option
+# for large uid, see: https://github.com/moby/moby/issues/5419
+RUN ["userdel", "nginx"]
+RUN groupadd --gid ${CONTAINER_GROUP_ID} nginx
+RUN useradd --no-log-init --uid ${CONTAINER_USER_ID} --gid ${CONTAINER_GROUP_ID} nginx
+
+# adds "load_module modules/ngx_http_perl_module.so" and "env MOODLE_DOCKER_WEB_PORT" to the beginning of nginx.conf
+RUN ["sed", "-i", "1s%^%load_module modules/ngx_http_perl_module.so;\\nenv MOODLE_DOCKER_WEB_PORT;\\n%", "/etc/nginx/nginx.conf"]
+
+# # Install packages.
+RUN apt-get update -y \
+    && apt-get install -y --no-install-recommends libpq-dev git curl nano procps net-tools
+
+RUN chown -R nginx:nginx /var/log/nginx
+
+RUN chmod -R 755 /var/log/nginx
+
+WORKDIR /var/www/html

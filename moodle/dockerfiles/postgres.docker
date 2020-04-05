@@ -1,0 +1,17 @@
+ARG MOODLE_DOCKER_POSTGRES_VERSION
+FROM postgres:${MOODLE_DOCKER_POSTGRES_VERSION}
+
+ARG CONTAINER_USER_ID
+ARG CONTAINER_GROUP_ID
+ENV CONTAINER_USER_ID $CONTAINER_USER_ID
+ENV CONTAINER_GROUP_ID $CONTAINER_GROUP_ID
+
+# Need to recreate user with supplied uid with 'no-log-init' option
+# for large uid, see: https://github.com/moby/moby/issues/5419
+RUN ["userdel", "postgres"]
+RUN groupadd --gid ${CONTAINER_GROUP_ID} postgres
+RUN useradd --no-log-init --uid ${CONTAINER_USER_ID} --gid ${CONTAINER_GROUP_ID} postgres
+
+# # Install packages.
+RUN apt-get update -y \
+    && apt-get install -y --no-install-recommends libpq-dev git curl nano procps net-tools

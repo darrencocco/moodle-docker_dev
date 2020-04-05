@@ -1,0 +1,83 @@
+---
+version: "3.5"
+services:
+  www:
+    build: 
+        context: ./dockerfiles
+        dockerfile: nginx.docker
+        args:
+          CONTAINER_USER_ID: "$DOCKER_UID"
+          CONTAINER_GROUP_ID: "$DOCKER_GID"
+    image: monash/moodle-webserver:latest
+    volumes:
+        - "${MOODLE_DOCKER_WWWROOT}:/var/www/html"
+        - "${MOODLE_DOCKER_MOODLEDATAROOT}:/var/www/moodledata"
+        - "${MOODLE_DOCKER_PHPUNITDATAROOT}:/var/www/phpunitdata"
+        - "${MOODLE_DOCKER_BEHATDATAROOT}:/var/www/behatdata"
+        - "${MOODLE_DOCKER_BEHATFAILDUMPSDATAROOT}:/var/www/behatfaildumps"
+        - "${MOODLE_DOCKER_WEBSERVERLOGS}/access.log:/var/log/nginx/access.log"
+        - "${MOODLE_DOCKER_WEBSERVERLOGS}/error.log:/var/log/nginx/error.log"
+        - "./assets/nginx/moodle.conf:/etc/nginx/conf.d/default.conf"
+        - "./assets/nginx/mailhog.conf:/etc/nginx/conf.d/mailhog.conf"
+    depends_on:
+        - db
+    networks:
+        test:
+          aliases:
+            - behat
+
+  phpfpm:
+    build: 
+        context: ./dockerfiles
+        dockerfile: phpfpm.docker
+        args:
+          CONTAINER_USER_ID: "$DOCKER_UID"
+          CONTAINER_GROUP_ID: "$DOCKER_GID"
+          MOODLE_DOCKER_PHP_VERSION: 7.2
+    image: monash/moodle-phpfpm:latest
+    volumes:
+        - "${MOODLE_DOCKER_WWWROOT}:/var/www/html"
+        - "${MOODLE_DOCKER_MOODLEDATAROOT}:/var/www/moodledata"
+        - "${MOODLE_DOCKER_PHPUNITDATAROOT}:/var/www/phpunitdata"
+        - "${MOODLE_DOCKER_BEHATDATAROOT}:/var/www/behatdata"
+        - "${MOODLE_DOCKER_BEHATFAILDUMPSDATAROOT}:/var/www/behatfaildumps"
+        - "./assets/php/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini"
+    environment:
+      MOODLE_DOCKER_DBTYPE: "${MOODLE_DOCKER_DBTYPE}"
+      MOODLE_DOCKER_DBNAME: "${MOODLE_DOCKER_DBNAME}"
+      MOODLE_DOCKER_DBUSER: "${MOODLE_DOCKER_DBUSER}"
+      MOODLE_DOCKER_DBPASS: "${MOODLE_DOCKER_DBPASS}"
+      MOODLE_DOCKER_BROWSER: "${MOODLE_DOCKER_BROWSER}"
+      MOODLE_DOCKER_WEB_HOST: "${MOODLE_DOCKER_WEB_HOST}"
+    networks:
+        - test
+
+  db:
+    build: 
+        context: ./dockerfiles
+        dockerfile: postgres.docker
+        args:
+          CONTAINER_USER_ID: "$DOCKER_UID"
+          CONTAINER_GROUP_ID: "$DOCKER_GID"
+          MOODLE_DOCKER_POSTGRES_VERSION: 9.4
+    image: monash/moodle-postgres:latest
+    environment:
+      POSTGRES_USER: "${MOODLE_DOCKER_DBUSER}"
+      POSTGRES_PASSWORD: "${MOODLE_DOCKER_DBPASS}"
+      POSTGRES_DB: "${MOODLE_DOCKER_DBNAME}"
+    volumes:
+     - "${MOODLE_DOCKER_POSTGRESDATAROOT}:/var/lib/postgresql/data"
+    networks:
+        - test
+  
+          #  exttests:
+          #    image: moodlehq/moodle-exttests
+  
+  mailhog:
+    image: mailhog/mailhog
+    networks:
+        - test
+
+networks:
+  test:
+    name: test
