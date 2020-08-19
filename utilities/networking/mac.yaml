@@ -1,0 +1,21 @@
+version: '3.5'
+
+services:
+  openvpn:
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+    privileged: true
+    image: kylemanna/openvpn
+    container_name: vpn
+    ports:
+      - "1194:1194/udp"
+    restart: always
+    volumes:
+      - ./openvpn-data/conf:/etc/openvpn
+    networks:
+      - test
+      
+networks:
+  test:
+    name: test

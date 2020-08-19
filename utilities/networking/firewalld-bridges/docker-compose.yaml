@@ -1,0 +1,10 @@
+version: '3.5'
+
+services:
+  firewalld-bridges:
+    image: darren.cocco\firewalld-bridges
+    restart: always
+    userns_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket

@@ -59,7 +59,7 @@ services:
         args:
           CONTAINER_USER_ID: "$DOCKER_UID"
           CONTAINER_GROUP_ID: "$DOCKER_GID"
-          MOODLE_DOCKER_POSTGRES_VERSION: 9.4
+          MOODLE_DOCKER_POSTGRES_VERSION: 9.6
     image: monash/moodle-postgres:latest
     environment:
       POSTGRES_USER: "${MOODLE_DOCKER_DBUSER}"
@@ -69,9 +69,6 @@ services:
      - "${MOODLE_DOCKER_POSTGRESDATAROOT}:/var/lib/postgresql/data"
     networks:
         - test
-  
-          #  exttests:
-          #    image: moodlehq/moodle-exttests
   
   mailhog:
     image: mailhog/mailhog

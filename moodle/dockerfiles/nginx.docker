@@ -1,4 +1,4 @@
-FROM nginx:perl
+FROM nginx:mainline
 
 ARG CONTAINER_USER_ID
 ARG CONTAINER_GROUP_ID
